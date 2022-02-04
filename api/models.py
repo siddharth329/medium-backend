@@ -18,12 +18,12 @@ class Post(models.Model):
     title = models.CharField(max_length=100, unique=True)
     subtitle = models.CharField(max_length=150, null=True)
     slug = models.SlugField(max_length=100, unique=True, blank=True)
-    cover_image = models.ImageField(upload_to='', null=True, blank=True)
+    cover_image = models.URLField(null=True, blank=True)
     # content = RichTextField()
     upvote_count = models.PositiveIntegerField(default=0)
     comment_count = models.PositiveIntegerField(default=0)
     read_time = models.PositiveIntegerField(blank=True)
-    tags = models.ManyToManyField(Tag, null=True, blank=True)
+    tags = models.ManyToManyField(Tag, blank=True)
     published = models.BooleanField(default=False)
     published_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -48,8 +48,8 @@ class Comment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        unique_together = (('post', 'user'), )
+    # class Meta:
+    #     unique_together = (('post', 'user'), )
 
 
 class Upvote(models.Model):
@@ -59,6 +59,9 @@ class Upvote(models.Model):
     class Meta:
         unique_together = (('post', 'user'), )
 
+    def __str__(self):
+        return f'{self.user.name} - {self.post.title}'
+
 
 class Follower(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user')
@@ -66,6 +69,9 @@ class Follower(models.Model):
 
     class Meta:
         unique_together = (('user', 'follower'), )
+
+    def __str__(self):
+        return f'{self.user.name} - {self.follower.name}'
 
 
 class Bookmark(models.Model):
@@ -75,6 +81,8 @@ class Bookmark(models.Model):
     class Meta:
         unique_together = (('post', 'user'), )
 
+    def __str__(self):
+        return f'{self.user.name} - {self.post.title}'
 
 # class Profile(models.Model):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE)

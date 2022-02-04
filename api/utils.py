@@ -14,6 +14,10 @@ def generate_random_string(length, uppercase=False, method='hex', urlsafe=True):
         return str(''.join(secrets.choice((string.ascii_uppercase if uppercase else string.ascii_lowercase) + string.digits) for i in range(length)))
 
 
+def get_ip_from_request(request):
+    return request.META.get('REMOTE_ADDR')
+
+
 EDITORJS_PLUGINS = [
     '@editorjs/paragraph',
     '@editorjs/image',

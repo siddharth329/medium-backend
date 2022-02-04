@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import UserProfile
+from .views import UserProfile, CurrentUserProfile
 from dj_rest_auth.registration.views import RegisterView, VerifyEmailView, ConfirmEmailView
 from dj_rest_auth.views import LoginView, LogoutView
 
@@ -11,6 +11,7 @@ urlpatterns = [
     path('verify-email/', VerifyEmailView.as_view()),
     path('account-confirm-email/', VerifyEmailView.as_view()),
     path('account-confirm-email/<str:key>/', ConfirmEmailView.as_view()),
+    path('profile/', CurrentUserProfile.as_view()),
     path('<int:pk>/', UserProfile.as_view()),
 
     path('accounts/', include('dj_rest_auth.urls')),

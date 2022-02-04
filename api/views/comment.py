@@ -5,7 +5,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from ..serializers.comment import CommentSerializer
+from ..serializers.comment import CommentSerializer, CommentCreateSerializer
 from ..models import Comment, Post
 
 
@@ -33,17 +33,24 @@ class CreateCommentView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, slug):
-        post_id = get_object_or_404(Post, slug=slug).id
+        post = get_object_or_404(Post, slug=slug)
         user = request.user
-        description = request.POST.get('description')
 
-        try:
-            comment = Comment(user=user, post_id=post_id, description=description)
-            comment.save()
-            return JsonResponse(comment, safe=False)
-        except:
-            response = {'detail': 'Something went wrong!'}
-            return JsonResponse(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        serializer = CommentSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save(user=user, post=post)
+            return Response(serializer.data)
+
+        return Response(serializer.errors)
+
+        # try:
+        #     comment = Comment(user=user, post_id=post.id, description=description)
+        #     comment.save()
+        #     return JsonResponse(comment, safe=False)
+        # except:
+        #     response = {'detail': 'Something went wrong!'}
+        #     return JsonResponse(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class DeleteCommentView(APIView):

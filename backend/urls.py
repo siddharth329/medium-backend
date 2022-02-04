@@ -15,12 +15,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
     path('users/', include('user.urls')),
     path('accounts/', include('allauth.urls')),
+    path('images/', include('image.urls')),
     path('editorjs/', include('django_editorjs_fields.urls')),
-    path('', include('swagger.urls'))
 ]
+
+if settings.DEBUG:
+    urlpatterns.append(path('', include('swagger.urls')))

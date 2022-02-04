@@ -1,9 +1,11 @@
 from rest_framework import serializers
 from django.db import transaction
+from django.template.defaultfilters import slugify
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from .models import User
+from api.utils import generate_random_string
 
 
 class UserRegisterSerializer(RegisterSerializer):
@@ -23,6 +25,7 @@ class UserRegisterSerializer(RegisterSerializer):
     def save(self, request):
         user = super().save(request)
         user.name = self.data.get('name')
+        user.slug = slugify(self.data.get('name')) + '-' + generate_random_string(8)
         user.save()
         return user
 

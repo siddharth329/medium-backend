@@ -1,0 +1,11 @@
+Django
+Pillow
+djangorestframework
+django-filter
+django-cors-headers
+djangorestframework-simplejwt
+django-allauth
+dj-rest-auth
+django-ckeditor
+cloudinary
+dj3-cloudinary-storage

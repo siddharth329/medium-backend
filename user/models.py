@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 FULL_USER_PROFILE = [
     'name',
     'email',
+    'slug',
     'description',
     'posts_count',
     'followers_count',
@@ -51,15 +52,18 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=50)
+    slug = models.SlugField(unique=True, null=True, blank=True)
     description = models.TextField(max_length=500, blank=True)
+    profile_image = models.ImageField(upload_to='', null=True, blank=True)
+    background_image = models.ImageField(upload_to='', null=True, blank=True)
+
     posts_count = models.PositiveIntegerField(default=0)
     followers_count = models.PositiveIntegerField(default=0)
     following_count = models.PositiveIntegerField(default=0)
-    background_image = models.ImageField(upload_to='', null=True, blank=True)
-    profile_image = models.ImageField(upload_to='', null=True, blank=True)
     github_link = models.URLField(null=True, blank=True)
     linkedin_link = models.URLField(null=True, blank=True)
     twitter_link = models.URLField(null=True, blank=True)
+
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     user_type = models.IntegerField(default=0, choices=USER_TYPE)
@@ -83,6 +87,7 @@ class UserAdmin(ModelAdmin):
     fieldsets = (
         ('Required', {'fields': ('email', 'name', 'password')}),
         ('About', {'fields': [
+            'slug',
             'description',
             'github_link',
             'linkedin_link',

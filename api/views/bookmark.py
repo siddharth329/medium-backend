@@ -19,11 +19,11 @@ class BookmarkHandlerView(APIView):
             upvote = Bookmark.objects.filter(user=user, post=post).exists()
             if upvote:
                 Bookmark.objects.get(user=user, post=post).delete()
-                response = {'detail': 'Bookmark Deletion Success'}
+                response = {'detail': False}
             else:
                 upvote = Bookmark(user=user, post=post)
                 upvote.save()
-                response = {'detail': 'Bookmark Creation Success'}
+                response = {'detail': True}
             return JsonResponse(response, safe=False)
 
         except:

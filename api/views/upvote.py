@@ -18,11 +18,11 @@ class UpvoteHandlerView(APIView):
             upvote = Upvote.objects.filter(user=user, post=post).exists()
             if upvote:
                 Upvote.objects.get(user=user, post=post).delete()
-                response = {'detail': 'Upvote Delete Success'}
+                response = {'detail': False}
             else:
                 upvote = Upvote(user=user, post=post)
                 upvote.save()
-                response = {'detail': 'Upvote Success'}
+                response = {'detail': True}
             return JsonResponse(response, safe=False)
 
         except:

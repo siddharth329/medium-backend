@@ -1,9 +1,13 @@
 from django.http import Http404
+from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_framework.views import APIView
 from rest_framework import generics, viewsets
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.filters import SearchFilter, OrderingFilter
+
 from user.permissions import IsOwner
 from ..models import Post
 from ..serializers.post import PostAllSerializer, PostSerializer
@@ -11,8 +15,21 @@ from ..serializers.post import PostAllSerializer, PostSerializer
 
 
 class PostAllView(generics.ListAPIView):
-    queryset = Post.objects.select_related('user').filter(published=True)
+    """
+    All posts view
+    This route is configured to provide list of all posts excluding the non published ones with pagination
+    /api/posts
+    /api/posts?search=query
+    /api/posts?tags=id
+    """
     serializer_class = PostAllSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ['tags']
+    search_fields = ['title', 'subtitle']
+
+    def get_queryset(self):
+        queryset = Post.objects.select_related('user').filter(published=True)
+        return queryset
 
 
 class PostView(generics.RetrieveAPIView):
