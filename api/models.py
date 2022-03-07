@@ -22,6 +22,7 @@ class Post(models.Model):
     # content = RichTextField()
     upvote_count = models.PositiveIntegerField(default=0)
     comment_count = models.PositiveIntegerField(default=0)
+    view_count = models.PositiveIntegerField(default=0)
     read_time = models.PositiveIntegerField(blank=True)
     tags = models.ManyToManyField(Tag, blank=True)
     published = models.BooleanField(default=False)
@@ -30,11 +31,22 @@ class Post(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     content = EditorJsJSONField(
-        plugins=EDITORJS_PLUGINS,
+        # plugins=EDITORJS_PLUGINS,
         tools={
-            'Gist': {'class': 'Gist'},
-            'Image': {'config': {'endpoint': {'byFile': '/editorjs/image_upload/'}}}
-        }
+            # 'Gist': {'class': 'Gist'},
+            'Image': {'config': {'endpoint': {'byFile': '/editorjs/image_upload/'}}},
+            'Hyperlink': {
+                'class': 'Hyperlink',
+                'config': {
+                    'shortcut': 'CMD+L',
+                    'target': '_blank',
+                    'rel': 'nofollow',
+                    'availableTargets': ['_blank', '_self'],
+                    'availableRels': ['author', 'noreferrer'],
+                    'validate': False,
+                }
+            }
+        },
     )
 
     def __str__(self):
@@ -83,6 +95,14 @@ class Bookmark(models.Model):
 
     def __str__(self):
         return f'{self.user.name} - {self.post.title}'
+
+
+# class PostViews(models.Model):
+#     ip_address = models.IPAddressField(default='0.0.0.0')
+#     post = models.ForeignKey(Post, on_delete=models.CASCADE)
+#
+#     def __str__(self):
+#         return f'{self.post.title} - {self.ip_address}'
 
 # class Profile(models.Model):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE)

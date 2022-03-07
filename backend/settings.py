@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'ckeditor',
     'django_editorjs_fields',
+    'django_filters',
 
     'user',
     'api',
@@ -279,3 +280,5 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+
+EDITORJS_VERSION = '2.22.2'

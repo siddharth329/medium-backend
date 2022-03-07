@@ -54,8 +54,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=50)
     slug = models.SlugField(unique=True, null=True, blank=True)
     description = models.TextField(max_length=500, blank=True)
-    profile_image = models.ImageField(upload_to='', null=True, blank=True)
-    background_image = models.ImageField(upload_to='', null=True, blank=True)
+    profile_image = models.URLField(null=True, blank=True)
+    background_image = models.URLField(null=True, blank=True)
 
     posts_count = models.PositiveIntegerField(default=0)
     followers_count = models.PositiveIntegerField(default=0)

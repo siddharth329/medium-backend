@@ -1,6 +1,6 @@
 from django.http import Http404
 from django_filters.rest_framework import DjangoFilterBackend
-
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework import generics, viewsets
 from rest_framework.response import Response
@@ -8,8 +8,9 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
 
+from user.models import User
 from user.permissions import IsOwner
-from ..models import Post
+from ..models import Post, Follower
 from ..serializers.post import PostAllSerializer, PostSerializer
 # Create your views here.
 
@@ -34,7 +35,7 @@ class PostAllView(generics.ListAPIView):
 
 class PostView(generics.RetrieveAPIView):
     lookup_field = 'slug'
-    queryset = Post.objects.filter(published=True)
+    queryset = Post.objects.all()
     serializer_class = PostSerializer
 
 
@@ -52,6 +53,7 @@ class PostCreateView(APIView):
 class PostManagementView(viewsets.ModelViewSet):
     lookup_field = 'slug'
     permission_classes = [IsAuthenticated, IsOwner]
+    serializer_class = PostSerializer
     queryset = Post.objects.all()
 
     def update(self, request, *args, **kwargs):
@@ -91,3 +93,39 @@ class PostManagementView(viewsets.ModelViewSet):
 #         post = self.custom_get_object_or_404(self, slug=slug)
 #         post.delete()
 #         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PostByUserAllView(generics.ListAPIView):
+    """
+    All posts by authenticated user view
+    This route is configured to provide list of all posts by authenticated user
+    excluding the non published ones with pagination
+    /api/posts
+    /api/post_by_user?published=boolean
+    /api/post_by_user?title=query
+    /api/post_by_user?subtitle=query
+    """
+    serializer_class = PostAllSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ['published']
+    search_fields = ['title', 'subtitle']
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = Post.objects.filter(user=self.request.user)
+        return queryset
+
+
+class PostByFollowingUser(generics.ListAPIView):
+    """
+    All posts by users whom the request user follows
+    /api/post_by_following_user
+    """
+    serializer_class = PostAllSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        following = Follower.objects.filter(follower=self.request.user)
+        users = User.objects.filter(user__in=following)
+        queryset = Post.objects.filter(user__in=users, published=True)
+        return queryset

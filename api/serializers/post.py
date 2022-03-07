@@ -18,7 +18,7 @@ class PostAllSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         # fields = '__all__'
-        exclude = ['content', 'updated_at', 'created_at']
+        exclude = ['content', 'created_at']
         read_only_fields = [
             'user',
             'slug',
@@ -41,6 +41,7 @@ class PostSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     user = PostProfileSerializer(read_only=True)
     meta = serializers.SerializerMethodField()
+    related = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Post
@@ -70,6 +71,14 @@ class PostSerializer(serializers.ModelSerializer):
 
         return meta
 
+    def get_related(self, obj):
+        related_posts = Post.objects \
+                            .filter(Q(tags__in=obj.tags.all()) & ~Q(slug=obj.slug)) \
+                            .distinct() \
+                            .order_by('-upvote_count')[:7]
+        serializer = PostAllSerializer(related_posts, many=True)
+        return serializer.data
+
     def validate(self, attrs):
         for tag in attrs['tags']:
             if not tag['name']:
@@ -81,12 +90,14 @@ class PostSerializer(serializers.ModelSerializer):
             current_user = self.context['request'].user
 
             title = validated_data['title']
+            subtitle = validated_data['subtitle']
             content = validated_data['content']
             tags = validated_data['tags']
             published = validated_data['published']
 
             post = Post(
                 title=title,
+                subtitle=subtitle,
                 content=content,
                 published=published,
                 user=current_user
@@ -98,6 +109,22 @@ class PostSerializer(serializers.ModelSerializer):
                 post.tags.add(tag.id)
 
             return post
+
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.subtitle = validated_data.get('subtitle', instance.title)
+        instance.cover_image = validated_data.get('cover_image', instance.cover_image)
+        instance.published = validated_data.get('published')
+        instance.content = validated_data.get('content')
+
+        new_tags = validated_data.get('tags', instance.tags)
+        instance.tags.clear()
+        if new_tags:
+            for tag in new_tags:
+                tag = Tag.objects.get(name=tag['name'])
+                instance.tags.add(tag.id)
+        instance.save()
+        return instance
 
 # class PostCreateSerializer(serializers.ModelSerializer):
 #     class Meta:
