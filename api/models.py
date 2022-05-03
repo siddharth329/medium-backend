@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from user.models import User
 from ckeditor.fields import RichTextField
 from django_editorjs_fields import EditorJsJSONField
@@ -33,7 +34,7 @@ class Post(models.Model):
     content = EditorJsJSONField(
         # plugins=EDITORJS_PLUGINS,
         tools={
-            # 'Gist': {'class': 'Gist'},
+            'Gist': {'class': 'Gist'},
             'Image': {'config': {'endpoint': {'byFile': '/editorjs/image_upload/'}}},
             'Hyperlink': {
                 'class': 'Hyperlink',
@@ -95,6 +96,14 @@ class Bookmark(models.Model):
 
     def __str__(self):
         return f'{self.user.name} - {self.post.title}'
+
+
+class View(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    time = models.DateTimeField(default=timezone.now())
+
+    def __str__(self):
+        return f'{self.post.title} at {self.time}'
 
 
 # class PostViews(models.Model):

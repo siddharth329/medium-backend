@@ -1,6 +1,7 @@
 from django.http import Http404
 from django_filters.rest_framework import DjangoFilterBackend
-from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.db.models import Count
 from rest_framework.views import APIView
 from rest_framework import generics, viewsets
 from rest_framework.response import Response
@@ -10,7 +11,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 
 from user.models import User
 from user.permissions import IsOwner
-from ..models import Post, Follower
+from ..models import Post, Follower, View
 from ..serializers.post import PostAllSerializer, PostSerializer
 # Create your views here.
 
@@ -32,11 +33,29 @@ class PostAllView(generics.ListAPIView):
         queryset = Post.objects.select_related('user').filter(published=True)
         return queryset
 
+    def get_serializer_context(self):
+        context = super(PostAllView, self).get_serializer_context()
+        context.update({"request": self.request})
+        return context
+
 
 class PostView(generics.RetrieveAPIView):
     lookup_field = 'slug'
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    
+    def get_queryset(self):
+        post = Post.objects.get(slug=self.kwargs['slug'])
+        print(post)
+        if post:
+            View.objects.create(post=post)
+        queryset = Post.objects.all()
+        return queryset
+
+    def get_serializer_context(self):
+        context = super(PostView, self).get_serializer_context()
+        context.update({"request": self.request})
+        return context
 
 
 class PostCreateView(APIView):
@@ -129,3 +148,31 @@ class PostByFollowingUser(generics.ListAPIView):
         users = User.objects.filter(user__in=following)
         queryset = Post.objects.filter(user__in=users, published=True)
         return queryset
+
+
+class PostTrending(generics.ListAPIView):
+    """
+    All posts which are trending
+    /api/post_by_following_user
+    """
+    serializer_class = PostAllSerializer
+
+    def get_queryset(self):
+        views = View.objects \
+            .filter(time__gte=(timezone.now() - timezone.timedelta(days=7))) \
+            .values('post__slug') \
+            .annotate(count=Count('post__slug'))
+
+        views_array = [x['post__slug'] for x in views]
+        print(views_array)
+        queryset = Post.objects.filter(published=True).filter(slug__in=views_array)
+        return queryset
+        # views = View.objects \
+        #     .filter(time__gte=(timezone.now() - timezone.timedelta(days=7))) \
+        #     .values('post__slug') \
+        #     .annotate(count=Count('post__slug')) \
+        #     .order_by('-count')
+        #
+        # views_array = [x['post__slug'] for x in views]
+
+        # return queryset
